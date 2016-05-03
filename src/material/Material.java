@@ -18,76 +18,94 @@ public class Material {
     static int rot = 10;
     static int gelb = 10;
     
-    static String line;
-    static BufferedReader fromClient;
-    static DataOutputStream toClient;
+    static Socket panelSocket = null;
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
         try {
-        String line;
-        boolean verbunden;
-        ServerSocket listenSocket = new ServerSocket(9999);
-        while (true){
-            Socket cliSocket = listenSocket.accept();
-            verbunden = true;
-            BufferedReader fromClient = new BufferedReader(new InputStreamReader(cliSocket.getInputStream()));
-            DataOutputStream toClient = new DataOutputStream(cliSocket.getOutputStream());
-            while(verbunden){
-                line = fromClient.readLine();
-                System.out.println("Empfangen: " + line);
-                if (line.equals("gruen")) {
-                    gruen--;
-                    System.out.println("gruen verringert");
-                    if (gruen == 0) {
-                        toClient.writeBytes("leer" + '\n');
-                    }
-                    else {
-                        toClient.writeBytes("erfolgreich" + '\n');
-                    }
+            while (panelSocket == null) {
+                try {
+                    panelSocket = new Socket("localhost", 9999);
                 }
-                if (line.equals("rot")) {
-                    rot--;
-                    System.out.println("rot verringert");
-                    if (rot == 0) {
-                        toClient.writeBytes("leer" + '\n');
-                    }
-                    else {
-                        toClient.writeBytes("erfolgreich" + '\n');
-                    }
+                catch (IOException e) {
+                    System.out.println(e.getMessage() + '\n');
                 }
-                if (line.equals("gelb")) {
-                    gelb--;
-                    System.out.println("gelb verringert");
-                    if (gelb == 0) {
-                        toClient.writeBytes("leer" + '\n');
-                    }
-                    else {
-                        toClient.writeBytes("erfolgreich" + '\n');
-                    }
-                }
-                if (line.equals("gruen auffuellen")) {
-                    gruen = 10;
-                    System.out.println("gruen aufgefuellt");
-                    toClient.writeBytes("erfolgreich" + '\n');
-                }
-                if (line.equals("rot auffuellen")) {
-                    rot = 10;
-                    System.out.println("rot aufgefuellt");
-                    toClient.writeBytes("erfolgreich" + '\n');
-                }
-                if (line.equals("gelb auffuellen")) {
-                    gelb = 10;
-                    System.out.println("gelb aufgefuellt");
-                    toClient.writeBytes("erfolgreich" + '\n');
-                }
-            } // end while verbunden
-            toClient.close(); cliSocket.close();
-        } // end repeat forever
-        } //end try
-        catch(IOException e){
+            }
+            
+            boolean exit = false;
+            while (exit == false) {
+                exit = warten();
+            }
+            panelSocket.close();
+        }
+        catch (IOException e) {
+            System.out.println(e.getMessage() + '\n');
+        }
+    }
     
+    public static boolean warten () {
+        try {
+            BufferedReader fromPanel = new BufferedReader(new InputStreamReader(panelSocket.getInputStream()));
+            DataOutputStream toPanel = new DataOutputStream(panelSocket.getOutputStream());
+            String buffer;
+            String send = "";
+            buffer = fromPanel.readLine();
+//            System.out.println("Empfangen: " + buffer);
+            
+            if (buffer.equals("exit")) {
+                return true;
+            }
+            else if (buffer.equals("check")) {
+                send = gruen + "," + rot + "," + gelb;
+            }
+            else if (buffer.equals("gruen")) {
+                gruen--;
+                if (gruen == 0) {
+                    send = "leer";
+                }
+                else {
+                    send = "erfolgreich";
+                }
+            }
+            else if (buffer.equals("rot")) {
+                rot--;
+                if (rot == 0) {
+                    send = "leer";
+                }
+                else {
+                    send = "erfolgreich";
+                }
+            }
+            else if (buffer.equals("gelb")) {
+                gelb--;
+                if (gelb == 0) {
+                    send = "leer";
+                }
+                else {
+                    send = "erfolgreich";
+                }
+            }
+            else if (buffer.equals("gruen auffuellen")) {
+                gruen = 10;
+                send = "erfolgreich";
+            }
+            else if (buffer.equals("rot auffuellen")) {
+                rot = 10;
+                send = "erfolgreich";
+            }
+            else if (buffer.equals("gelb auffuellen")) {
+                gelb = 10;
+                send = "erfolgreich";
+            }
+            toPanel.writeBytes(send + '\n');
+            System.out.println("gruen:" + gruen + " rot: " + rot + " gelb: " + gelb);
+            
+            return false;
+        }
+        catch (IOException e) {
+            System.out.println(e.getMessage() + '\n');
+            return true;
         }
     }
 }
