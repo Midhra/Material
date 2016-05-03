@@ -5,8 +5,11 @@
  */
 package material;
 
-import java.io.*;
-import java.net.*;
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.Socket;
 
 /**
  *
@@ -35,7 +38,7 @@ public class Material {
             
             boolean exit = false;
             while (exit == false) {
-                exit = warten();
+                exit = arbeiten();
             }
             panelSocket.close();
         }
@@ -44,7 +47,7 @@ public class Material {
         }
     }
     
-    public static boolean warten () {
+    public static boolean arbeiten () {
         try {
             BufferedReader fromPanel = new BufferedReader(new InputStreamReader(panelSocket.getInputStream()));
             DataOutputStream toPanel = new DataOutputStream(panelSocket.getOutputStream());
